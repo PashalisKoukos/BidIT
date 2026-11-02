@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Make the page responsive on different screen sizes. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>COT Auction</title>
+
+    <!-- Load the CSS file from Flask's static directory. -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Display the website title and a short description. -->
+    <header>
+        <h1>Cash or Trash Auction</h1>
+        <p>Welcome to the COT/1 online auction!</p>
+    </header>
+
+    <!-- Display the available auction products. -->
+    <main>
+        <h2>Available Items</h2>
+
+        <section class="auction-grid">
+
+            <!-- Product 1 -->
+            <article class="auction-card">
+                <h3>Vintage Watch</h3>
+                <p>A classic vintage wristwatch.</p>
+                <p class="price">€50.00</p>
+                <p class="status">Status: Active</p>
+                <form>
+                    <label for="bid-1">Your bid (€)</label>
+                    <input id="bid-1" type="number" min="50.01" step="0.01"
+                           placeholder="Enter your bid">
+                    <button type="button">Place Bid</button>
+                </form>
+            </article>
+
+            <!-- Product 2 -->
+            <article class="auction-card">
+                <h3>Antique Vase</h3>
+                <p>A decorative antique vase.</p>
+                <p class="price">€35.00</p>
+                <p class="status">Status: Active</p>
+                <form>
+                    <label for="bid-2">Your bid (€)</label>
+                    <input id="bid-2" type="number" min="35.01" step="0.01"
+                           placeholder="Enter your bid">
+                    <button type="button">Place Bid</button>
+                </form>
+            </article>
+
+            <!-- Product 3 -->
+            <article class="auction-card">
+                <h3>Old Camera</h3>
+                <p>A retro camera for collectors.</p>
+                <p class="price">€80.00</p>
+                <p class="status">Status: Active</p>
+                <form>
+                    <label for="bid-3">Your bid (€)</label>
+                    <input id="bid-3" type="number" min="80.01" step="0.01"
+                           placeholder="Enter your bid">
+                    <button type="button">Place Bid</button>
+                </form>
+            </article>
+
+            <!-- Product 4 -->
+            <article class="auction-card">
+                <h3>Vinyl Record</h3>
+                <p>A collectible music record.</p>
+                <p class="price">€20.00</p>
+                <p class="status">Status: Active</p>
+                <form>
+                    <label for="bid-4">Your bid (€)</label>
+                    <input id="bid-4" type="number" min="20.01" step="0.01"
+                           placeholder="Enter your bid">
+                    <button type="button">Place Bid</button>
+                </form>
+            </article>
+
+            <!-- Product 5 -->
+            <article class="auction-card">
+                <h3>Rare Book</h3>
+                <p>An old book for collectors.</p>
+                <p class="price">€45.00</p>
+                <p class="status">Status: Active</p>
+                <form>
+                    <label for="bid-5">Your bid (€)</label>
+                    <input id="bid-5" type="number" min="45.01" step="0.01"
+                           placeholder="Enter your bid">
+                    <button type="button">Place Bid</button>
+                </form>
+            </article>
+
+        </section>
+    </main>
+
+</body>
+</html>
