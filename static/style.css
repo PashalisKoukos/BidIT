@@ -1,81 +1,273 @@
 
-/* Apply consistent sizing to every element on the page. */
+/* =========================================
+   COT AUCTION - GLOBAL STYLES
+   ========================================= */
+
+/* Use predictable sizing for all page elements. */
 * {
     box-sizing: border-box;
 }
 
-/* Define the main appearance of the website. */
+/* Define the website's colors and default typography. */
+:root {
+    --navy: #10213a;
+    --navy-light: #1d3557;
+    --blue: #2563c7;
+    --blue-hover: #174ea6;
+    --gold: #e7b85b;
+    --background: #f3f6fb;
+    --white: #ffffff;
+    --text: #253247;
+    --muted: #6b778c;
+    --border: #e1e7f0;
+    --green: #16815b;
+    --red: #b42332;
+}
+
+/* Set the main page appearance. */
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f8;
-    color: #222;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    line-height: 1.6;
 }
 
-/* Style the top section of the website. */
+/* =========================================
+   HEADER
+   ========================================= */
+
+/* Create a dark, premium-looking website header. */
 header {
-    background-color: #202c39;
-    color: white;
-    padding: 24px;
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    color: var(--white);
+    padding: 38px 20px;
     text-align: center;
+    border-bottom: 4px solid var(--gold);
+    box-shadow: 0 4px 14px rgba(16, 33, 58, 0.18);
 }
 
-/* Keep the main content centered and readable. */
+/* Style the main website title. */
+header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -1px;
+}
+
+/* Highlight the website introduction. */
+header p {
+    margin: 8px 0 0;
+    color: #dce5f2;
+    font-size: 1.05rem;
+}
+
+/* =========================================
+   MAIN CONTENT
+   ========================================= */
+
+/* Keep the page content centered and readable. */
 main {
-    max-width: 1100px;
-    margin: 30px auto;
-    padding: 0 20px;
+    width: min(1400px, 100%);
+    margin: 0 auto;
+    padding: 35px 24px 50px;
 }
 
-/* Arrange the auction products in a responsive grid. */
+/* Style the section heading. */
+main h2 {
+    margin: 0 0 24px;
+    color: var(--navy);
+    font-size: 1.9rem;
+}
+
+/* =========================================
+   NOTIFICATIONS
+   ========================================= */
+
+/* Give feedback messages a clear appearance. */
+main > p.status {
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--blue);
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+}
+
+/* =========================================
+   AUCTION GRID
+   ========================================= */
+
+/* Display product cards in a responsive grid. */
 .auction-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(100%, 245px), 1fr)
+    );
+    gap: 24px;
+    align-items: stretch;
 }
 
-/* Give every product its own card. */
+/* Style each auction card. */
 .auction-card {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    min-width: 0;
+    padding: 24px 20px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 5px 18px rgba(16, 33, 58, 0.07);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Make the current price easy to notice. */
-.price {
-    font-size: 1.4rem;
-    font-weight: bold;
-    color: #16734a;
+/* Add a subtle effect when hovering over a product. */
+.auction-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(16, 33, 58, 0.13);
 }
 
-/* Style the product status. */
-.status {
-    color: #555;
+/* Style the product name. */
+.auction-card h3 {
+    margin: 0 0 8px;
+    color: var(--navy);
+    font-size: 1.35rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+/* Style secondary information such as the item ID. */
+.auction-card .status {
+    color: var(--muted);
     font-size: 0.9rem;
+    overflow-wrap: anywhere;
 }
 
-/* Style the bid input field. */
-input {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+/* =========================================
+   PRICES AND BIDDERS
+   ========================================= */
+
+/* Make the current price stand out visually. */
+.price {
+    display: inline-block;
+    margin: 12px 0;
+    padding: 7px 16px;
+    background: #eaf2ff;
+    color: var(--blue);
+    border-radius: 10px;
+    font-size: 1.65rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
 }
 
-/* Style buttons used for bidding. */
-button {
+/* Emphasize the highest bidder information. */
+.auction-card p {
+    overflow-wrap: anywhere;
+}
+
+/* =========================================
+   BID FORMS
+   ========================================= */
+
+/* Separate the bidding form from the product details. */
+.auction-card form {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+}
+
+/* Keep form labels clear and readable. */
+.auction-card label {
+    display: block;
+    margin: 12px 0 5px;
+    color: var(--navy);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+/* Style username and bid amount fields. */
+.auction-card input[type="text"],
+.auction-card input[type="number"] {
+    display: block;
     width: 100%;
-    padding: 10px;
-    background-color: #16734a;
-    color: white;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fbfcfe;
+    color: var(--text);
+    font: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Highlight the field currently being edited. */
+.auction-card input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 199, 0.13);
+}
+
+/* Style the Place Bid button. */
+.auction-card button {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 13px 16px;
     border: none;
-    border-radius: 5px;
+    border-radius: 9px;
+    background: var(--blue);
+    color: var(--white);
+    font: inherit;
+    font-weight: 700;
     cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
-/* Change the button appearance when the user hovers over it. */
-button:hover {
-    background-color: #105a39;
+/* Change the button appearance on hover. */
+.auction-card button:hover {
+    background: var(--blue-hover);
+    transform: translateY(-1px);
+}
+
+/* Show a visible focus indicator for keyboard users. */
+.auction-card button:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
+}
+
+/* =========================================
+   RESPONSIVE LAYOUT
+   ========================================= */
+
+/* Adjust spacing for smaller screens. */
+@media (max-width: 600px) {
+    header {
+        padding: 28px 16px;
+    }
+
+    main {
+        padding: 24px 16px 35px;
+    }
+
+    main h2 {
+        font-size: 1.6rem;
+    }
+
+    .auction-grid {
+        gap: 16px;
+    }
+
+    .auction-card {
+        padding: 20px 16px;
+    }
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+        animation: none !important;
+    }
 }

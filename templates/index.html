@@ -11,6 +11,7 @@
 
     <!-- Load the CSS file from Flask's static directory. -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Load the script that periodically retrieves auction updates. -->
 </head>
 <body>
 
@@ -20,84 +21,118 @@
         <p>Welcome to the COT/1 online auction!</p>
     </header>
 
-    <!-- Display the available auction products. -->
+    <!-- Display auction information and the available products. -->
     <main>
         <h2>Available Items</h2>
 
+        <!-- Display a message returned by the COT/1 server. -->
+        {% if message %}
+            <p class="status">{{ message }}</p>
+        {% endif %}
+
+        <!-- Display an error if something went wrong. -->
+        {% if error %}
+            <p class="status">Error: {{ error }}</p>
+        {% endif %}
+
+        <!-- Create a responsive grid containing all auction items. -->
         <section class="auction-grid">
 
-            <!-- Product 1 -->
-            <article class="auction-card">
-                <h3>Vintage Watch</h3>
-                <p>A classic vintage wristwatch.</p>
-                <p class="price">€50.00</p>
-                <p class="status">Status: Active</p>
-                <form>
-                    <label for="bid-1">Your bid (€)</label>
-                    <input id="bid-1" type="number" min="50.01" step="0.01"
-                           placeholder="Enter your bid">
-                    <button type="button">Place Bid</button>
-                </form>
-            </article>
+            <!-- Loop through the items received from the TCP server. -->
+            {% for item in items %}
 
-            <!-- Product 2 -->
-            <article class="auction-card">
-                <h3>Antique Vase</h3>
-                <p>A decorative antique vase.</p>
-                <p class="price">€35.00</p>
-                <p class="status">Status: Active</p>
-                <form>
-                    <label for="bid-2">Your bid (€)</label>
-                    <input id="bid-2" type="number" min="35.01" step="0.01"
-                           placeholder="Enter your bid">
-                    <button type="button">Place Bid</button>
-                </form>
-            </article>
+                <article class="auction-card">
 
-            <!-- Product 3 -->
-            <article class="auction-card">
-                <h3>Old Camera</h3>
-                <p>A retro camera for collectors.</p>
-                <p class="price">€80.00</p>
-                <p class="status">Status: Active</p>
-                <form>
-                    <label for="bid-3">Your bid (€)</label>
-                    <input id="bid-3" type="number" min="80.01" step="0.01"
-                           placeholder="Enter your bid">
-                    <button type="button">Place Bid</button>
-                </form>
-            </article>
+                    <!-- Display the product's name and identifier. -->
+                    <h3>{{ item.name }}</h3>
+                    <p class="status">Item ID: {{ item.item_id }}</p>
 
-            <!-- Product 4 -->
-            <article class="auction-card">
-                <h3>Vinyl Record</h3>
-                <p>A collectible music record.</p>
-                <p class="price">€20.00</p>
-                <p class="status">Status: Active</p>
-                <form>
-                    <label for="bid-4">Your bid (€)</label>
-                    <input id="bid-4" type="number" min="20.01" step="0.01"
-                           placeholder="Enter your bid">
-                    <button type="button">Place Bid</button>
-                </form>
-            </article>
+                    <!-- Display the latest price received from the server. -->
+                    <p class="price">
+                        €{{ item.current_price }}
+                    </p>
 
-            <!-- Product 5 -->
-            <article class="auction-card">
-                <h3>Rare Book</h3>
-                <p>An old book for collectors.</p>
-                <p class="price">€45.00</p>
-                <p class="status">Status: Active</p>
-                <form>
-                    <label for="bid-5">Your bid (€)</label>
-                    <input id="bid-5" type="number" min="45.01" step="0.01"
-                           placeholder="Enter your bid">
-                    <button type="button">Place Bid</button>
-                </form>
-            </article>
+                    <!-- Display the current auction status. -->
+                    <p class="status">
+                        Status: {{ item.status }}
+                    </p>
+
+                    <!-- Display the highest bidder, if one exists. -->
+                    {% if item.highest_bidder %}
+                        <p>
+                            Highest bidder: {{ item.highest_bidder }}
+                        </p>
+                    {% else %}
+                        <p>No bids yet.</p>
+                    {% endif %}
+
+                    <!-- Show the bidding form only while the auction is active. -->
+                    {% if item.status == "ACTIVE" %}
+
+                        <form action="{{ url_for('place_bid') }}" method="POST">
+
+                            <!-- Ask the user for a username. -->
+                            <label for="username-{{ item.item_id }}">
+                                Username
+                            </label>
+
+                            <input
+                                id="username-{{ item.item_id }}"
+                                type="text"
+                                name="username"
+                                maxlength="30"
+                                required
+                                pattern="[^\s]+"
+                                title="Enter a username without spaces."
+                                placeholder="Enter your username"
+                            >
+
+                            <!-- Send the product ID with the form. -->
+                            <input
+                                type="hidden"
+                                name="item_id"
+                                value="{{ item.item_id }}"
+                            >
+
+                            <!-- Ask the user to enter a bid amount. -->
+                            <label for="amount-{{ item.item_id }}">
+                                Your bid (€)
+                            </label>
+
+                            <input
+                                id="amount-{{ item.item_id }}"
+                                type="number"
+                                name="amount"
+                                min="0.01"
+                                step="0.01"
+                                required
+                                placeholder="Enter your bid"
+                            >
+
+                            <!-- Submit the bid to the Flask application. -->
+                            <button type="submit">Place Bid</button>
+
+                        </form>
+
+                    {% else %}
+
+                        <!-- Explain why bidding is unavailable. -->
+                        <p class="status">This auction has ended.</p>
+
+                    {% endif %}
+
+                </article>
+
+            {% else %}
+
+                <!-- Display this message when no items are available. -->
+                <p>No auction items are currently available.</p>
+
+            {% endfor %}
 
         </section>
     </main>
-
+    <!-- Load the script that periodically retrieves auction updates. -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
