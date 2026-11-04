@@ -1,0 +1,29 @@
+{
+  "items": [
+    {
+      "item_id": 1,
+      "name": "Vintage Lamp",
+      "starting_price": "25.00"
+    },
+    {
+      "item_id": 2,
+      "name": "Old Camera",
+      "starting_price": "40.00"
+    },
+    {
+      "item_id": 3,
+      "name": "Antique Clock",
+      "starting_price": "60.00"
+    },
+    {
+      "item_id": 4,
+      "name": "Vintage Radio",
+      "starting_price": "35.00"
+    },
+    {
+      "item_id": 5,
+      "name": "Collectible Vase",
+      "starting_price": "50.00"
+    }
+  ]
+}

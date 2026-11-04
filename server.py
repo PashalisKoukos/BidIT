@@ -3,6 +3,7 @@ import random
 import socket
 import threading
 import time
+from pathlib import Path
 from decimal import Decimal, InvalidOperation
 
 
@@ -12,54 +13,82 @@ PORT = 5000
 
 # Each auction receives its own random duration.
 # These short limits are useful for testing the application.
-# For the final demonstration, you can increase these values, for example:
-# MIN_AUCTION_DURATION_SECONDS = 5 * 60
-# MAX_AUCTION_DURATION_SECONDS = 20 * 60
 MIN_AUCTION_DURATION_SECONDS = 60
 MAX_AUCTION_DURATION_SECONDS = 180
 
-# Define the five auction items.
-# The auction_end_time field is added individually to every item below.
-items = [
-    {
-        "item_id": 1,
-        "name": "Vintage Lamp",
-        "current_price": Decimal("25.00"),
-        "highest_bidder": None,
-        "status": "ACTIVE",
-    },
-    {
-        "item_id": 2,
-        "name": "Old Camera",
-        "current_price": Decimal("40.00"),
-        "highest_bidder": None,
-        "status": "ACTIVE",
-    },
-    {
-        "item_id": 3,
-        "name": "Antique Clock",
-        "current_price": Decimal("60.00"),
-        "highest_bidder": None,
-        "status": "ACTIVE",
-    },
-    {
-        "item_id": 4,
-        "name": "Vintage Radio",
-        "current_price": Decimal("35.00"),
-        "highest_bidder": None,
-        "status": "ACTIVE",
-    },
-    {
-        "item_id": 5,
-        "name": "Collectible Vase",
-        "current_price": Decimal("50.00"),
-        "highest_bidder": None,
-        "status": "ACTIVE",
-    },
-]
+# Load auction item definitions from a JSON file located next to this script.
+# This keeps product data separate from the server implementation.
+ITEMS_FILE = Path(__file__).with_name("items.json")
 
-# Record a separate deadline for each auction.
-# time.monotonic() is used because it is suitable for measuring elapsed time.
+
+def load_items():
+    """Load and validate auction items from the external JSON file."""
+    try:
+        with ITEMS_FILE.open("r", encoding="utf-8") as json_file:
+            data = json.load(json_file)
+    except FileNotFoundError as error:
+        raise RuntimeError(
+            f"Required data file was not found: {ITEMS_FILE}"
+        ) from error
+    except json.JSONDecodeError as error:
+        raise RuntimeError(
+            f"The JSON file contains invalid JSON: {error}"
+        ) from error
+
+    if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+        raise ValueError("items.json must contain an 'items' array.")
+
+    loaded_items = []
+    used_ids = set()
+
+    for entry in data["items"]:
+        if not isinstance(entry, dict):
+            raise ValueError("Every item in items.json must be a JSON object.")
+
+        try:
+            item_id = int(entry["item_id"])
+            name = str(entry["name"]).strip()
+            starting_price = Decimal(str(entry["starting_price"]))
+        except (KeyError, TypeError, ValueError, InvalidOperation) as error:
+            raise ValueError(
+                "Each item needs item_id, name and starting_price fields."
+            ) from error
+
+        if item_id <= 0 or item_id in used_ids:
+            raise ValueError("Item IDs must be positive and unique.")
+        if not name:
+            raise ValueError(f"Item {item_id} must have a non-empty name.")
+        if (
+            not starting_price.is_finite()
+            or starting_price <= 0
+            or starting_price != starting_price.quantize(Decimal("0.01"))
+        ):
+            raise ValueError(
+                f"Item {item_id} must have a positive price with at most two decimals."
+            )
+
+        used_ids.add(item_id)
+        loaded_items.append(
+            {
+                "item_id": item_id,
+                "name": name,
+                "current_price": starting_price,
+                "highest_bidder": None,
+                "status": "ACTIVE",
+            }
+        )
+
+    if not loaded_items:
+        raise ValueError("The items array in items.json cannot be empty.")
+
+    return loaded_items
+
+
+# Load the products once when the server starts.
+items = load_items()
+
+# Assign an independent random deadline to every auction.
+# monotonic() is used because it is suitable for measuring elapsed time.
 server_start_time = time.monotonic()
 
 for item in items:
