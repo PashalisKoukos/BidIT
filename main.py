@@ -1,16 +1,53 @@
-# This is a sample Python script.
+"""
+Main entry point to run all COT/1 components:
+- TCP Auction Server
+- Flask Web Application
+- Interactive CLI Client
+"""
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import threading
+import time
+import app
+import client
+import server
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def start_server():
+    """Start the central TCP auction server."""
+    server.main()
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def start_flask_app():
+    """Start the Flask web application interface."""
+    # Disable reloader and debug mode to run smoothly in a background thread
+    app.app.run(host="127.0.0.1", port=5001, debug=False, use_reloader=False)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+if __name__ == "__main__":
+    print("=== Starting Cash or Trash Auction System ===")
+
+    # 1. Start the TCP Server in a background thread
+    print("[SYSTEM] Launching TCP Server on 127.0.0.1:5000...")
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
+
+    # Give the TCP server a second to bind to the port
+    time.sleep(1)
+
+    # 2. Start the Flask Web Application in a background thread
+    print("[SYSTEM] Launching Flask Web App on http://127.0.0.1:5001...")
+    web_thread = threading.Thread(target=start_flask_app, daemon=True)
+    web_thread.start()
+
+    # Give the web server a moment to boot up
+    time.sleep(1)
+
+    print("\n[SYSTEM] All servers are running!")
+    print("[SYSTEM] Access the Web UI at: http://127.0.0.1:5001")
+    print("[SYSTEM] Launching Interactive CLI Client below...\n")
+
+    # 3. Run the interactive CLI Client in the main thread
+    try:
+        client.main()
+    except KeyboardInterrupt:
+        print("\n[SYSTEM] Shutting down application...")
