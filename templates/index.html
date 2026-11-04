@@ -2,137 +2,307 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Define document metadata and responsive viewport settings. -->
     <meta charset="UTF-8">
-
-    <!-- Make the page responsive on different screen sizes. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>COT Auction</title>
+    <title>Cash or Trash | Live Auctions</title>
 
-    <!-- Load the CSS file from Flask's static directory. -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- Load the script that periodically retrieves auction updates. -->
+    <!-- Load the main stylesheet from Flask's static directory. -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <!-- Load the JavaScript responsible for live auction updates. -->
+    <script
+        src="{{ url_for('static', filename='app.js') }}"
+        defer
+    ></script>
 </head>
-<body>
 
-    <!-- Display the website title and a short description. -->
-    <header>
-        <h1>Cash or Trash Auction</h1>
-        <p>Welcome to the COT/1 online auction!</p>
+<body>
+    <!-- Top navigation and brand area. -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="{{ url_for('index') }}" aria-label="Cash or Trash home">
+                <span class="brand-mark" aria-hidden="true">C</span>
+
+                <span class="brand-copy">
+                    <span class="brand-name">CASH <span>&amp;</span> TRASH</span>
+                    <span class="brand-caption">THE LIVE AUCTION HOUSE</span>
+                </span>
+            </a>
+
+            <div class="connection-indicator">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span>Live auctions</span>
+            </div>
+        </div>
     </header>
 
-    <!-- Display auction information and the available products. -->
     <main>
-        <h2>Available Items</h2>
+        <!-- Introductory banner that explains the purpose of the website. -->
+        <section class="hero">
+            <div class="hero-content">
+                <p class="eyebrow">DISCOVER. BID. WIN.</p>
 
-        <!-- Display a message returned by the COT/1 server. -->
-        {% if message %}
-            <p class="status">{{ message }}</p>
+                <h1>One bid could<br>change everything.</h1>
+
+                <p class="hero-description">
+                    Unique finds. Friendly competition.
+                    Your next favourite item is only a bid away.
+                </p>
+
+                <a class="hero-button" href="#auctions">
+                    Explore auctions
+                    <span aria-hidden="true">↓</span>
+                </a>
+            </div>
+
+            <div class="hero-art" aria-hidden="true">
+                <div class="hero-orbit orbit-one"></div>
+                <div class="hero-orbit orbit-two"></div>
+
+                <div class="hero-coin">
+                    <span class="coin-symbol">€</span>
+                    <span class="coin-label">YOUR<br>NEXT WIN</span>
+                </div>
+
+                <span class="floating-tag tag-top">PLACE YOUR BID</span>
+                <span class="floating-tag tag-bottom">FIND SOMETHING RARE</span>
+            </div>
+        </section>
+
+        <!-- Display server or form feedback in a visually distinct notification. -->
+        {% if notification %}
+            <section
+                class="notification notification-{{ notification.type }}"
+                role="status"
+                aria-live="polite"
+            >
+                <span class="notification-icon" aria-hidden="true">
+                    {% if notification.type == "success" %}
+                        ✓
+                    {% elif notification.type == "warning" %}
+                        !
+                    {% else %}
+                        ×
+                    {% endif %}
+                </span>
+
+                <p>{{ notification.message }}</p>
+            </section>
         {% endif %}
 
-        <!-- Display an error if something went wrong. -->
+        <!-- Display connection and application errors. -->
         {% if error %}
-            <p class="status">Error: {{ error }}</p>
+            <section class="notification notification-error" role="alert">
+                <span class="notification-icon" aria-hidden="true">!</span>
+                <p>{{ error }}</p>
+            </section>
         {% endif %}
 
-        <!-- Create a responsive grid containing all auction items. -->
-        <section class="auction-grid">
+        <!-- Auction overview and item grid. -->
+        <section class="auction-section" id="auctions">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow eyebrow-dark">THE COLLECTION</p>
+                    <h2>Discover the auctions</h2>
+                    <p class="section-description">
+                        Every item has a story. Make your offer count.
+                    </p>
+                </div>
 
-            <!-- Loop through the items received from the TCP server. -->
-            {% for item in items %}
+                <div class="refresh-label">
+                    <span class="live-dot" aria-hidden="true"></span>
+                    Prices refresh automatically
+                </div>
+            </div>
 
-                <article class="auction-card">
+            {% if items %}
+                <!-- The JavaScript uses these cards to update prices and statuses. -->
+                <div class="auction-grid" id="auction-grid">
+                    {% for item in items %}
+                        <article
+                            class="auction-card"
+                            data-item-id="{{ item.item_id }}"
+                        >
+                            <div class="card-topline">
+                                <span class="item-number">
+                                    LOT {{ "%02d"|format(item.item_id) }}
+                                </span>
 
-                    <!-- Display the product's name and identifier. -->
-                    <h3>{{ item.name }}</h3>
-                    <p class="status">Item ID: {{ item.item_id }}</p>
+                                <span
+                                    class="auction-status
+                                    {% if item.status == 'ACTIVE' %}
+                                        status-active
+                                    {% else %}
+                                        status-expired
+                                    {% endif %}"
+                                >
+                                    <span class="status-dot" aria-hidden="true"></span>
+                                    <span class="status-text">{{ item.status }}</span>
+                                </span>
+                            </div>
 
-                    <!-- Display the latest price received from the server. -->
-                    <p class="price">
-                        €{{ item.current_price }}
+                            <!-- A decorative placeholder keeps the design consistent
+                                 without relying on external image services. -->
+                            <div class="item-art item-art-{{ loop.index0 % 5 }}"
+                                 aria-hidden="true">
+                                <span class="item-art-number">
+                                    {{ "%02d"|format(item.item_id) }}
+                                </span>
+                                <span class="item-art-word">THE FIND</span>
+                            </div>
+
+                            <div class="card-content">
+                                <p class="item-category">CURATED AUCTION ITEM</p>
+
+                                <h3 class="item-name">{{ item.name }}</h3>
+
+                                <div class="price-block">
+                                    <span class="price-label">CURRENT BID</span>
+                                    <p class="price">
+                                        <span class="currency-symbol">€</span>{{ item.current_price }}
+                                    </p>
+                                </div>
+
+                                <div class="bidder-row">
+                                    <span class="bidder-icon" aria-hidden="true">↗</span>
+
+                                    <div class="bidder-details">
+                                        <span class="bidder-label">TOP BIDDER</span>
+
+                                        <p class="highest-bidder">
+                                            {% if item.highest_bidder %}
+                                                {{ item.highest_bidder }}
+                                            {% else %}
+                                                No bids yet
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Active auctions display the bid form.
+                                     JavaScript hides it when an auction expires. -->
+                                <form
+                                    class="bid-form"
+                                    action="{{ url_for('place_bid') }}"
+                                    method="POST"
+                                >
+                                    <label for="username-{{ item.item_id }}">
+                                        Your username
+                                    </label>
+
+                                    <input
+                                        id="username-{{ item.item_id }}"
+                                        type="text"
+                                        name="username"
+                                        placeholder="Enter a username"
+                                        maxlength="30"
+                                        pattern="[^\s]+"
+                                        autocomplete="nickname"
+                                        required
+                                    >
+
+                                    <label for="amount-{{ item.item_id }}">
+                                        Your offer (€)
+                                    </label>
+
+                                    <div class="bid-input-wrap">
+                                        <span aria-hidden="true">€</span>
+
+                                        <input
+                                            id="amount-{{ item.item_id }}"
+                                            type="number"
+                                            name="amount"
+                                            min="0.01"
+                                            step="0.01"
+                                            placeholder="0.00"
+                                            required
+                                        >
+                                    </div>
+
+                                    <input
+                                        type="hidden"
+                                        name="item_id"
+                                        value="{{ item.item_id }}"
+                                    >
+
+                                    <button class="bid-button" type="submit">
+                                        Place your bid
+                                        <span aria-hidden="true">↗</span>
+                                    </button>
+                                </form>
+
+                                <!-- The JavaScript reveals this message after expiry. -->
+                                {% if item.status != 'ACTIVE' %}
+                                    <p class="ended-message">
+                                        This auction has ended.
+                                    </p>
+                                {% else %}
+                                    <p class="ended-message" hidden>
+                                        This auction has ended.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- This state appears when there are no items or the server is unavailable. -->
+                <div class="empty-state">
+                    <span class="empty-icon" aria-hidden="true">◇</span>
+                    <h3>No auctions to display</h3>
+                    <p>
+                        There are no items available right now.
+                        Please check back soon.
                     </p>
 
-                    <!-- Display the current auction status. -->
-                    <p class="status">
-                        Status: {{ item.status }}
-                    </p>
+                    <a class="secondary-button" href="{{ url_for('index') }}">
+                        Try again
+                    </a>
+                </div>
+            {% endif %}
+        </section>
 
-                    <!-- Display the highest bidder, if one exists. -->
-                    {% if item.highest_bidder %}
-                        <p>
-                            Highest bidder: {{ item.highest_bidder }}
-                        </p>
-                    {% else %}
-                        <p>No bids yet.</p>
-                    {% endif %}
+        <!-- Short explanation of how the auction process works. -->
+        <section class="how-it-works">
+            <div class="how-heading">
+                <p class="eyebrow eyebrow-dark">SIMPLE BY DESIGN</p>
+                <h2>How it works</h2>
+            </div>
 
-                    <!-- Show the bidding form only while the auction is active. -->
-                    {% if item.status == "ACTIVE" %}
-
-                        <form action="{{ url_for('place_bid') }}" method="POST">
-
-                            <!-- Ask the user for a username. -->
-                            <label for="username-{{ item.item_id }}">
-                                Username
-                            </label>
-
-                            <input
-                                id="username-{{ item.item_id }}"
-                                type="text"
-                                name="username"
-                                maxlength="30"
-                                required
-                                pattern="[^\s]+"
-                                title="Enter a username without spaces."
-                                placeholder="Enter your username"
-                            >
-
-                            <!-- Send the product ID with the form. -->
-                            <input
-                                type="hidden"
-                                name="item_id"
-                                value="{{ item.item_id }}"
-                            >
-
-                            <!-- Ask the user to enter a bid amount. -->
-                            <label for="amount-{{ item.item_id }}">
-                                Your bid (€)
-                            </label>
-
-                            <input
-                                id="amount-{{ item.item_id }}"
-                                type="number"
-                                name="amount"
-                                min="0.01"
-                                step="0.01"
-                                required
-                                placeholder="Enter your bid"
-                            >
-
-                            <!-- Submit the bid to the Flask application. -->
-                            <button type="submit">Place Bid</button>
-
-                        </form>
-
-                    {% else %}
-
-                        <!-- Explain why bidding is unavailable. -->
-                        <p class="status">This auction has ended.</p>
-
-                    {% endif %}
-
+            <div class="steps-grid">
+                <article class="step">
+                    <span class="step-number">01</span>
+                    <h3>Find your item</h3>
+                    <p>Explore the available lots and choose something you like.</p>
                 </article>
 
-            {% else %}
+                <article class="step">
+                    <span class="step-number">02</span>
+                    <h3>Make your move</h3>
+                    <p>Enter your username and offer an amount above the current bid.</p>
+                </article>
 
-                <!-- Display this message when no items are available. -->
-                <p>No auction items are currently available.</p>
-
-            {% endfor %}
-
+                <article class="step">
+                    <span class="step-number">03</span>
+                    <h3>Stay in the game</h3>
+                    <p>Watch prices update live and see who holds the highest bid.</p>
+                </article>
+            </div>
         </section>
     </main>
-    <!-- Load the script that periodically retrieves auction updates. -->
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+    <!-- Footer with a small project and protocol reference. -->
+    <footer class="site-footer">
+        <a class="footer-brand" href="{{ url_for('index') }}">CASH <span>&amp;</span> TRASH</a>
+
+        <p>Designed for curious collectors and bold bidders.</p>
+
+        <span class="protocol-label">POWERED BY COT/1</span>
+    </footer>
 </body>
 </html>

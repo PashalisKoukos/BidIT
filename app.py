@@ -1,239 +1,392 @@
 
+"""
+Cash or Trash Auction - Web Application
+
+This Flask application provides the web interface for the auction system.
+It communicates with the central COT/1 TCP server instead of maintaining
+its own copy of the auction state.
+
+The TCP server remains the single source of truth for bids and item status.
+"""
+
 import json
 import socket
 import uuid
 from decimal import Decimal, InvalidOperation
 
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 
 
-# Create the Flask application.
+# ---------------------------------------------------------
+# Flask and TCP configuration
+# ---------------------------------------------------------
+
 app = Flask(__name__)
 
-# Define the address of the existing COT/1 TCP server.
-COT_SERVER_HOST = "127.0.0.1"
-COT_SERVER_PORT = 5000
+# The web application connects to the central COT/1 server.
+SERVER_HOST = "127.0.0.1"
+SERVER_PORT = 5000
 
-# Prevent the web application from waiting indefinitely for the server.
+# Prevent a web request from waiting forever for the TCP server.
 SOCKET_TIMEOUT = 5
 
+# Restrict usernames to a single word with a reasonable maximum length.
+MAX_USERNAME_LENGTH = 30
+
+
+# ---------------------------------------------------------
+# TCP communication helpers
+# ---------------------------------------------------------
 
 def receive_message(connection_file):
-    # Read one complete newline-terminated COT/1 message.
-    message = connection_file.readline()
+    """
+    Read one complete newline-delimited COT/1 message.
 
-    # Detect if the TCP server closed the connection unexpectedly.
-    if not message:
-        raise ConnectionError("The COT server closed the connection.")
+    The protocol uses one text message per line. Using makefile() allows
+    Python to read until the newline that terminates the server response.
+    """
+    line = connection_file.readline()
 
-    # Remove the line-ending characters from the message.
-    return message.rstrip("\r\n")
+    if not line:
+        raise ConnectionError("The COT/1 server closed the connection.")
+
+    return line.decode("utf-8").strip()
 
 
 def send_cot_command(username, command):
-    # Open a new TCP connection for this web request.
+    """
+    Open a TCP connection, complete the HELLO handshake, and send a command.
+
+    Each web request uses a temporary TCP connection. This keeps the Flask
+    layer simple and leaves auction state management to the TCP server.
+    """
     with socket.create_connection(
-        (COT_SERVER_HOST, COT_SERVER_PORT),
+        (SERVER_HOST, SERVER_PORT),
         timeout=SOCKET_TIMEOUT
     ) as connection:
 
-        # Set a timeout for subsequent socket operations.
+        # Apply a timeout to socket operations after connecting.
         connection.settimeout(SOCKET_TIMEOUT)
 
-        # Read protocol messages as UTF-8 text lines.
-        with connection.makefile(
-            "r",
-            encoding="utf-8",
-            newline="\n"
-        ) as connection_file:
+        # A file wrapper makes newline-delimited messages easy to read.
+        with connection.makefile("rb") as connection_file:
 
-            # Register the username before sending any other command.
+            # Register this connection with the COT/1 server.
             hello_message = f"HELLO {username}\n"
             connection.sendall(hello_message.encode("utf-8"))
 
-            # Read and verify the server's welcome response.
-            welcome = receive_message(connection_file)
+            welcome_response = receive_message(connection_file)
 
-            if not welcome.startswith("200 WELCOME "):
-                raise RuntimeError(welcome)
+            # Stop if the server rejects the username or handshake.
+            if not welcome_response.startswith("200 WELCOME "):
+                return welcome_response
 
             # Send the requested COT/1 command.
-            command_message = f"{command}\n"
-            connection.sendall(command_message.encode("utf-8"))
+            request_message = f"{command}\n"
+            connection.sendall(request_message.encode("utf-8"))
 
             # Read the direct response to the command.
             return receive_message(connection_file)
 
 
 def get_items_from_server():
-    # Use a temporary unique username for this read-only request.
+    """
+    Request the current item list from the COT/1 server.
+
+    A unique temporary username avoids collisions with normal web users
+    and with other web requests running at the same time.
+    """
     temporary_username = "Web" + uuid.uuid4().hex[:12]
 
-    # Request the current auction items from the TCP server.
     response = send_cot_command(
         temporary_username,
         "GET_ITEMS"
     )
 
-    # Verify that the server returned the expected response.
-    if not response.startswith("200 ITEMS_LIST "):
-        raise RuntimeError(response)
+    # The item list is the only response whose payload contains JSON.
+    prefix = "200 ITEMS_LIST "
 
-    # Extract the JSON document following the protocol prefix.
-    json_data = response[len("200 ITEMS_LIST "):]
+    if not response.startswith(prefix):
+        raise RuntimeError(f"Could not retrieve auction items: {response}")
 
-    # Decode the JSON document and return its list of items.
-    items_data = json.loads(json_data)
+    json_payload = response[len(prefix):]
+    items_data = json.loads(json_payload)
+
     return items_data["items"]
 
 
+# ---------------------------------------------------------
+# User input validation
+# ---------------------------------------------------------
+
+def validate_username(raw_username):
+    """
+    Validate the username received from the web form.
+
+    COT/1 represents usernames as a single token, so whitespace is not
+    permitted. The server performs its own uniqueness check as well.
+    """
+    username = (raw_username or "").strip()
+
+    if not username:
+        return None, "Please enter a username."
+
+    if len(username) > MAX_USERNAME_LENGTH:
+        return None, f"Your username must be {MAX_USERNAME_LENGTH} characters or fewer."
+
+    if any(character.isspace() for character in username):
+        return None, "Your username cannot contain spaces."
+
+    # Keep the username compatible with the plain-text COT/1 command format.
+    if any(character in username for character in "<>\r\n"):
+        return None, "Your username contains an unsupported character."
+
+    return username, None
+
+
+def validate_bid_amount(raw_amount):
+    """
+    Parse and validate a bid using Decimal rather than binary floating point.
+
+    Auction prices are monetary values, so Decimal avoids common floating
+    point rounding problems. The protocol sends prices with two decimals.
+    """
+    try:
+        amount = Decimal(raw_amount)
+    except (InvalidOperation, TypeError, ValueError):
+        return None, "Enter a valid bid amount."
+
+    if not amount.is_finite() or amount <= 0:
+        return None, "The bid must be a positive amount."
+
+    # Reject values that have more than two decimal places.
+    if amount.as_tuple().exponent < -2:
+        return None, "Use no more than two decimal places."
+
+    return amount, None
+
+
+# ---------------------------------------------------------
+# Human-readable notifications
+# ---------------------------------------------------------
+
+def format_bid_response(response):
+    """
+    Convert a COT/1 server response into a friendly web notification.
+
+    The original response is still generated by the TCP server. This
+    function only changes how that response is presented to the user.
+    """
+    parts = response.split()
+
+    if response.startswith("200 BID_ACCEPTED "):
+        # Expected format: 200 BID_ACCEPTED <item_id> <new_price>
+        price = parts[3] if len(parts) >= 4 else "updated"
+        return (
+            "success",
+            f"Your bid was accepted! The new price is €{price}."
+        )
+
+    if response.startswith("400 BID_TOO_LOW "):
+        # Expected format: 400 BID_TOO_LOW <current_price>
+        price = parts[2] if len(parts) >= 3 else "unavailable"
+        return (
+            "warning",
+            f"Your bid was too low. The current price is €{price}."
+        )
+
+    if response.startswith("403 AUCTION_EXPIRED "):
+        return (
+            "warning",
+            "This auction has ended. You can no longer place a bid."
+        )
+
+    if response.startswith("404 ITEM_NOT_FOUND "):
+        return (
+            "error",
+            "The selected item could not be found."
+        )
+
+    if response.startswith("409 USERNAME_TAKEN"):
+        return (
+            "error",
+            "That username is already in use. Please try another one."
+        )
+
+    if response.startswith("400 INVALID_REQUEST"):
+        return (
+            "error",
+            "The server could not understand the bid request."
+        )
+
+    if response.startswith("400 HELLO_REQUIRED"):
+        return (
+            "error",
+            "The connection could not be registered with the server."
+        )
+
+    # Keep unexpected server replies understandable without exposing
+    # implementation details as the main user-facing message.
+    return (
+        "error",
+        "The bid could not be processed. Please check the details and try again."
+    )
+
+
+# ---------------------------------------------------------
+# Web routes
+# ---------------------------------------------------------
+
 @app.route("/")
-def home():
-    # Load the latest auction information for the main page.
+def index():
+    """
+    Render the main auction page with the latest server-side item list.
+    """
     try:
         items = get_items_from_server()
 
-        # Display the auction items in the HTML template.
         return render_template(
             "index.html",
             items=items,
-            message=request.args.get("message"),
+            notification=None,
             error=None
         )
 
-    except (
-        OSError,
-        ConnectionError,
-        RuntimeError,
-        ValueError,
-        KeyError,
-        json.JSONDecodeError
-    ) as error:
-        # Display a useful error if the server cannot be reached.
-        return (
-            render_template(
-                "index.html",
-                items=[],
-                message=None,
-                error=str(error)
-            ),
-            503
-        )
+    except (OSError, ConnectionError, RuntimeError, ValueError, KeyError) as exc:
+        app.logger.warning("Could not load auction items: %s", exc)
+
+        return render_template(
+            "index.html",
+            items=[],
+            notification=None,
+            error="The auction server is unavailable. Please try again shortly."
+        ), 503
 
 
 @app.route("/api/items")
 def api_items():
-    # Return the latest auction items as JSON for the browser.
-    from flask import jsonify
+    """
+    Return the latest item data as JSON for the browser's polling script.
 
+    The frontend periodically calls this endpoint to refresh prices and
+    auction statuses without reloading the entire page.
+    """
     try:
-        # Retrieve the current auction state from the COT/1 server.
         items = get_items_from_server()
+        response = jsonify({"items": items})
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
-        # Convert the Python item list into an HTTP JSON response.
-        return jsonify({"items": items})
+    except (OSError, ConnectionError, RuntimeError, ValueError, KeyError) as exc:
+        app.logger.warning("Could not refresh auction items: %s", exc)
 
-    except (
-        OSError,
-        ConnectionError,
-        RuntimeError,
-        ValueError,
-        KeyError,
-        json.JSONDecodeError
-    ) as error:
-        # Return a JSON error if the TCP server is unavailable.
-        return jsonify({"error": str(error)}), 503
+        return jsonify({
+            "error": "The auction server is temporarily unavailable."
+        }), 503
+
 
 @app.route("/bid", methods=["POST"])
 def place_bid():
-    # Read the form fields submitted by the browser.
-    username = request.form.get("username", "").strip()
-    item_id_text = request.form.get("item_id", "").strip()
-    amount_text = request.form.get("amount", "").strip()
+    """
+    Validate a submitted bid, forward it to the COT/1 server, and render
+    the auction page with a user-friendly notification.
+    """
+    username, username_error = validate_username(
+        request.form.get("username")
+    )
 
-    # Usernames must be a single word because COT/1 uses spaces
-    # to separate command arguments.
-    if (
-        not username
-        or len(username) > 30
-        or any(character.isspace() for character in username)
-    ):
+    if username_error:
         return render_template(
             "index.html",
             items=get_items_from_server(),
-            message=None,
-            error="Enter a username without spaces (maximum 30 characters)."
+            notification={
+                "type": "error",
+                "message": username_error
+            },
+            error=None
         ), 400
 
-    # Validate the product ID and bid amount before sending them.
+    raw_item_id = (request.form.get("item_id") or "").strip()
+
     try:
-        item_id = int(item_id_text)
-        amount = Decimal(amount_text)
-
-        # Accept only positive prices with at most two decimal places.
-        if (
-            item_id <= 0
-            or not amount.is_finite()
-            or amount <= 0
-            or amount != amount.quantize(Decimal("0.01"))
-        ):
-            raise ValueError("Invalid item ID or bid amount.")
-
-    except (ValueError, InvalidOperation):
+        item_id = int(raw_item_id)
+    except (TypeError, ValueError):
         return render_template(
             "index.html",
             items=get_items_from_server(),
-            message=None,
-            error="Enter a valid item ID and a positive amount with up to two decimal places."
+            notification={
+                "type": "error",
+                "message": "The selected item ID is invalid."
+            },
+            error=None
         ), 400
 
-    # Format the amount consistently with the COT/1 protocol.
-    formatted_amount = f"{amount:.2f}"
+    amount, amount_error = validate_bid_amount(
+        request.form.get("amount")
+    )
+
+    if amount_error:
+        return render_template(
+            "index.html",
+            items=get_items_from_server(),
+            notification={
+                "type": "error",
+                "message": amount_error
+            },
+            error=None
+        ), 400
+
+    # Format the amount according to the COT/1 price representation.
+    formatted_amount = format(amount, ".2f")
+    command = f"BID {item_id} {formatted_amount}"
 
     try:
-        # Submit the bid to the authoritative TCP server.
-        response = send_cot_command(
-            username,
-            f"BID {item_id} {formatted_amount}"
+        # The central TCP server decides whether the bid is accepted.
+        server_response = send_cot_command(username, command)
+
+        notification_type, notification_message = format_bid_response(
+            server_response
         )
 
-        # Retrieve the latest prices after the bid attempt.
+        # Refresh the list after the bid so the page shows the latest price.
         items = get_items_from_server()
 
-        # Show the server's response and refreshed auction data.
         return render_template(
             "index.html",
             items=items,
-            message=response,
+            notification={
+                "type": notification_type,
+                "message": notification_message
+            },
             error=None
         )
 
-    except (
-        OSError,
-        ConnectionError,
-        RuntimeError,
-        ValueError,
-        KeyError,
-        json.JSONDecodeError
-    ) as error:
-        # Report communication errors without crashing the web app.
+    except (OSError, ConnectionError, RuntimeError, ValueError, KeyError) as exc:
+        app.logger.warning("Could not submit bid: %s", exc)
+
+        # Try to show the current auction list even if the bid request failed.
         try:
             items = get_items_from_server()
-        except Exception:
+        except (OSError, ConnectionError, RuntimeError, ValueError, KeyError):
             items = []
 
         return render_template(
             "index.html",
             items=items,
-            message=None,
-            error=str(error)
+            notification=None,
+            error="We could not reach the auction server. Please try again."
         ), 503
 
 
-# Start the Flask development server when this file is executed directly.
+# ---------------------------------------------------------
+# Application entry point
+# ---------------------------------------------------------
+
 if __name__ == "__main__":
+    # Debug mode is disabled to avoid exposing the interactive debugger.
+    # The application is bound to localhost for this project setup.
     app.run(
         host="127.0.0.1",
         port=5001,
-        debug=True
+        debug=False
     )

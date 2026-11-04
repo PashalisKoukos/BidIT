@@ -1,273 +1,1207 @@
 
-/* =========================================
-   COT AUCTION - GLOBAL STYLES
-   ========================================= */
+/*
+ * Cash or Trash Auction - Main Stylesheet
+ *
+ * The visual identity uses deep navy, warm gold, off-white surfaces,
+ * and restrained accent colours. Layouts adapt to smaller screens.
+ */
 
-/* Use predictable sizing for all page elements. */
+
+/* ---------------------------------------------------------
+   1. Design tokens and global defaults
+   --------------------------------------------------------- */
+
+:root {
+    --navy: #101d32;
+    --navy-light: #1b2c46;
+    --navy-soft: #253a56;
+
+    --gold: #e7bd70;
+    --gold-light: #f5e4bf;
+
+    --page-bg: #f6f5f1;
+    --surface: #ffffff;
+    --surface-soft: #fbfaf7;
+
+    --text: #18253a;
+    --text-muted: #778092;
+    --border: #e8e8e3;
+
+    --green: #237a58;
+    --green-bg: #e8f5ed;
+    --red: #b84040;
+    --red-bg: #fff0ef;
+    --orange: #99621a;
+    --orange-bg: #fff4df;
+
+    --shadow-card: 0 12px 35px rgba(16, 29, 50, 0.055);
+    --shadow-hover: 0 20px 48px rgba(16, 29, 50, 0.12);
+
+    --radius-small: 10px;
+    --radius-medium: 18px;
+    --radius-large: 28px;
+
+    --content-width: 1180px;
+}
+
 * {
     box-sizing: border-box;
 }
 
-/* Define the website's colors and default typography. */
-:root {
-    --navy: #10213a;
-    --navy-light: #1d3557;
-    --blue: #2563c7;
-    --blue-hover: #174ea6;
-    --gold: #e7b85b;
-    --background: #f3f6fb;
-    --white: #ffffff;
-    --text: #253247;
-    --muted: #6b778c;
-    --border: #e1e7f0;
-    --green: #16815b;
-    --red: #b42332;
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 24px;
 }
 
-/* Set the main page appearance. */
 body {
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: var(--background);
+    background: var(--page-bg);
     color: var(--text);
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    font-size: 15px;
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* =========================================
-   HEADER
-   ========================================= */
-
-/* Create a dark, premium-looking website header. */
-header {
-    background: linear-gradient(135deg, var(--navy), var(--navy-light));
-    color: var(--white);
-    padding: 38px 20px;
-    text-align: center;
-    border-bottom: 4px solid var(--gold);
-    box-shadow: 0 4px 14px rgba(16, 33, 58, 0.18);
+button,
+input {
+    font: inherit;
 }
 
-/* Style the main website title. */
-header h1 {
-    margin: 0;
-    font-size: clamp(2rem, 4vw, 3rem);
-    letter-spacing: -1px;
+button,
+a,
+input {
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* Highlight the website introduction. */
-header p {
-    margin: 8px 0 0;
-    color: #dce5f2;
-    font-size: 1.05rem;
+a {
+    color: inherit;
 }
 
-/* =========================================
-   MAIN CONTENT
-   ========================================= */
-
-/* Keep the page content centered and readable. */
-main {
-    width: min(1400px, 100%);
-    margin: 0 auto;
-    padding: 35px 24px 50px;
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+    outline: 3px solid rgba(231, 189, 112, 0.85);
+    outline-offset: 3px;
 }
 
-/* Style the section heading. */
-main h2 {
-    margin: 0 0 24px;
+::selection {
+    background: var(--gold-light);
     color: var(--navy);
-    font-size: 1.9rem;
 }
 
-/* =========================================
-   NOTIFICATIONS
-   ========================================= */
 
-/* Give feedback messages a clear appearance. */
-main > p.status {
-    padding: 14px 18px;
-    margin: 0 0 20px;
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-left: 5px solid var(--blue);
+/* ---------------------------------------------------------
+   2. Header and brand
+   --------------------------------------------------------- */
+
+.site-header {
+    position: relative;
+    z-index: 2;
+    background: var(--navy);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.header-inner {
+    width: min(var(--content-width), calc(100% - 48px));
+    min-height: 86px;
+    margin: 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 13px;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.brand-mark {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+
+    background: var(--gold);
+    border-radius: 13px;
+
+    color: var(--navy);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.brand-copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+
+.brand-name {
+    font-size: 15px;
+    font-weight: 850;
+    letter-spacing: 1.5px;
+}
+
+.brand-name span,
+.footer-brand span {
+    color: var(--gold);
+}
+
+.brand-caption {
+    margin-top: 5px;
+    color: #aeb9c9;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.connection-indicator,
+.refresh-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.connection-indicator {
+    color: #e0e7f0;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    display: inline-block;
+
+    background: #64d49b;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(100, 212, 155, 0.12);
+}
+
+
+/* ---------------------------------------------------------
+   3. Hero section
+   --------------------------------------------------------- */
+
+.hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: 40px;
+
+    min-height: 440px;
+    padding: 62px max(24px, calc((100vw - var(--content-width)) / 2));
+
+    background:
+        radial-gradient(
+            circle at 80% 50%,
+            rgba(57, 81, 113, 0.5),
+            transparent 36%
+        ),
+        linear-gradient(125deg, var(--navy) 0%, #152944 100%);
+
+    color: #ffffff;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 580px;
+}
+
+.eyebrow {
+    margin: 0 0 15px;
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 3px;
+}
+
+.hero h1 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(40px, 5vw, 65px);
+    font-weight: 500;
+    letter-spacing: -1.8px;
+    line-height: 1.08;
+}
+
+.hero-description {
+    max-width: 430px;
+    margin: 23px 0 28px;
+    color: #c4cfdd;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.hero-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 23px;
+
+    min-height: 48px;
+    padding: 0 20px;
+
+    background: var(--gold);
+    border: 1px solid var(--gold);
     border-radius: 8px;
-    overflow-wrap: anywhere;
+
+    color: var(--navy);
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+
+    transition:
+        transform 180ms ease,
+        background 180ms ease,
+        box-shadow 180ms ease;
 }
 
-/* =========================================
-   AUCTION GRID
-   ========================================= */
+.hero-button:hover {
+    transform: translateY(-2px);
+    background: #f1ce8b;
+    box-shadow: 0 8px 25px rgba(231, 189, 112, 0.18);
+}
 
-/* Display product cards in a responsive grid. */
+.hero-button span {
+    font-size: 18px;
+}
+
+
+/* ---------------------------------------------------------
+   4. Decorative hero illustration
+   --------------------------------------------------------- */
+
+.hero-art {
+    position: relative;
+    min-height: 300px;
+    display: grid;
+    place-items: center;
+}
+
+.hero-orbit {
+    position: absolute;
+    border: 1px solid rgba(231, 189, 112, 0.24);
+    border-radius: 50%;
+    transform: rotate(-22deg);
+}
+
+.orbit-one {
+    width: 280px;
+    height: 280px;
+}
+
+.orbit-two {
+    width: 355px;
+    height: 190px;
+}
+
+.hero-coin {
+    position: relative;
+    z-index: 1;
+
+    width: 180px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(circle at 30% 25%, #ffeac0, #e7bd70 60%, #bd8a3c);
+    border: 8px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+
+    color: var(--navy);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.24),
+        inset 0 0 0 2px rgba(116, 75, 24, 0.24);
+
+    transform: rotate(-10deg);
+}
+
+.coin-symbol {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 76px;
+    font-weight: 700;
+    line-height: 0.95;
+}
+
+.coin-label {
+    margin-top: 9px;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.floating-tag {
+    position: absolute;
+    z-index: 2;
+
+    padding: 9px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 7px;
+
+    color: #f6e8c9;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    backdrop-filter: blur(8px);
+}
+
+.tag-top {
+    top: 25px;
+    right: 0;
+}
+
+.tag-bottom {
+    bottom: 28px;
+    left: 0;
+}
+
+
+/* ---------------------------------------------------------
+   5. Notification messages
+   --------------------------------------------------------- */
+
+.notification {
+    width: min(var(--content-width), calc(100% - 48px));
+    margin: 24px auto 0;
+    padding: 15px 18px;
+
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    border: 1px solid transparent;
+    border-radius: var(--radius-small);
+}
+
+.notification p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.notification-icon {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    font-size: 15px;
+    font-weight: 850;
+}
+
+.notification-success {
+    background: var(--green-bg);
+    border-color: #c8e8d5;
+    color: var(--green);
+}
+
+.notification-success .notification-icon {
+    background: #d2eedc;
+}
+
+.notification-warning {
+    background: var(--orange-bg);
+    border-color: #f0d9a9;
+    color: var(--orange);
+}
+
+.notification-warning .notification-icon {
+    background: #f9e6bd;
+}
+
+.notification-error {
+    background: var(--red-bg);
+    border-color: #f2d0cd;
+    color: var(--red);
+}
+
+.notification-error .notification-icon {
+    background: #f8dcd9;
+}
+
+
+/* ---------------------------------------------------------
+   6. Auction section heading
+   --------------------------------------------------------- */
+
+.auction-section {
+    width: min(var(--content-width), calc(100% - 48px));
+    margin: 0 auto;
+    padding: 76px 0 80px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.eyebrow-dark {
+    color: #9b7739;
+}
+
+.section-heading h2,
+.how-heading h2 {
+    margin: 0;
+    color: var(--navy);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(30px, 3vw, 40px);
+    font-weight: 500;
+    letter-spacing: -0.8px;
+    line-height: 1.2;
+}
+
+.section-description {
+    margin: 12px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.refresh-label {
+    padding: 10px 13px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    color: #687486;
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   7. Auction card grid
+   --------------------------------------------------------- */
+
 .auction-grid {
     display: grid;
-    grid-template-columns: repeat(
-        auto-fit,
-        minmax(min(100%, 245px), 1fr)
-    );
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;
     align-items: stretch;
 }
 
-/* Style each auction card. */
 .auction-card {
     min-width: 0;
-    padding: 24px 20px;
-    background: var(--white);
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: 0 5px 18px rgba(16, 33, 58, 0.07);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-card);
+
+    transition:
+        transform 200ms ease,
+        box-shadow 200ms ease,
+        border-color 200ms ease;
 }
 
-/* Add a subtle effect when hovering over a product. */
 .auction-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(16, 33, 58, 0.13);
+    transform: translateY(-5px);
+    border-color: #ded6c5;
+    box-shadow: var(--shadow-hover);
 }
 
-/* Style the product name. */
-.auction-card h3 {
+.card-topline {
+    min-height: 54px;
+    padding: 0 19px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.item-number {
+    color: #818a99;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 1.5px;
+}
+
+.auction-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 5px 9px;
+    border-radius: 30px;
+
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 0.7px;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+.status-active {
+    background: var(--green-bg);
+    color: var(--green);
+}
+
+.status-active .status-dot {
+    background: #2caa70;
+}
+
+.status-expired {
+    background: #f0f0ed;
+    color: #747a83;
+}
+
+.status-expired .status-dot {
+    background: #9298a0;
+}
+
+
+/* ---------------------------------------------------------
+   8. Product art panels
+   --------------------------------------------------------- */
+
+.item-art {
+    position: relative;
+    min-height: 150px;
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #e7e9ed;
+    isolation: isolate;
+}
+
+.item-art::before,
+.item-art::after {
+    position: absolute;
+    z-index: -1;
+    content: "";
+    border-radius: 50%;
+}
+
+.item-art::before {
+    width: 170px;
+    height: 170px;
+    right: -28px;
+    top: -74px;
+    background: rgba(255, 255, 255, 0.45);
+}
+
+.item-art::after {
+    width: 120px;
+    height: 120px;
+    left: -32px;
+    bottom: -65px;
+    border: 1px solid rgba(16, 29, 50, 0.12);
+}
+
+.item-art-number {
+    color: rgba(16, 29, 50, 0.12);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 104px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.item-art-word {
+    position: absolute;
+    right: 15px;
+    bottom: 13px;
+
+    color: rgba(16, 29, 50, 0.55);
+    font-size: 8px;
+    font-weight: 850;
+    letter-spacing: 2px;
+}
+
+.item-art-0 {
+    background: linear-gradient(135deg, #e4e8e9, #d5dce0);
+}
+
+.item-art-1 {
+    background: linear-gradient(135deg, #f2e7d5, #e8d5b8);
+}
+
+.item-art-2 {
+    background: linear-gradient(135deg, #dce5dc, #c4d5c9);
+}
+
+.item-art-3 {
+    background: linear-gradient(135deg, #e4dff0, #d1c9e4);
+}
+
+.item-art-4 {
+    background: linear-gradient(135deg, #f0dedb, #e6c8c2);
+}
+
+
+/* ---------------------------------------------------------
+   9. Card details and prices
+   --------------------------------------------------------- */
+
+.card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 21px;
+}
+
+.item-category {
+    margin: 0 0 7px;
+    color: #9b7739;
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 1.3px;
+}
+
+.item-name {
+    margin: 0;
+    color: var(--navy);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 23px;
+    font-weight: 600;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.price-block {
+    margin-top: 22px;
+    padding-bottom: 19px;
+    border-bottom: 1px solid var(--border);
+}
+
+.price-label,
+.bidder-label {
+    display: block;
+    color: #8991a0;
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 1.4px;
+}
+
+.price {
+    margin: 3px 0 0;
+    color: var(--navy);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.7px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.currency-symbol {
+    margin-right: 3px;
+    color: #9b7739;
+}
+
+.bidder-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 17px 0 19px;
+}
+
+.bidder-icon {
+    width: 35px;
+    height: 35px;
+    flex: 0 0 auto;
+
+    display: grid;
+    place-items: center;
+
+    background: #f3f1eb;
+    border-radius: 50%;
+
+    color: #9b7739;
+    font-size: 18px;
+}
+
+.bidder-details {
+    min-width: 0;
+}
+
+.highest-bidder {
+    margin: 3px 0 0;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------------------------------------------------------
+   10. Bid form controls
+   --------------------------------------------------------- */
+
+.bid-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.bid-form label {
+    margin-top: 6px;
+    color: #505c6f;
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.bid-form input {
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 12px;
+
+    background: var(--surface-soft);
+    border: 1px solid #e3e5e7;
+    border-radius: 8px;
+
+    color: var(--text);
+    font-size: 13px;
+
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        background 160ms ease;
+}
+
+.bid-form input::placeholder {
+    color: #a5acb6;
+}
+
+.bid-form input:focus {
+    background: #ffffff;
+    border-color: #c4a15e;
+    box-shadow: 0 0 0 3px rgba(231, 189, 112, 0.16);
+    outline: none;
+}
+
+.bid-input-wrap {
+    position: relative;
+}
+
+.bid-input-wrap > span {
+    position: absolute;
+    top: 50%;
+    left: 13px;
+    transform: translateY(-50%);
+
+    color: #9b7739;
+    font-size: 13px;
+    font-weight: 800;
+    pointer-events: none;
+}
+
+.bid-input-wrap input {
+    padding-left: 32px;
+}
+
+.bid-button {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 8px;
+    padding: 11px 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    background: var(--navy);
+    border: 1px solid var(--navy);
+    border-radius: 8px;
+
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+
+    transition:
+        transform 160ms ease,
+        background 160ms ease,
+        border-color 160ms ease;
+}
+
+.bid-button:hover {
+    transform: translateY(-1px);
+    background: var(--navy-light);
+    border-color: var(--navy-light);
+}
+
+.bid-button span {
+    color: var(--gold);
+    font-size: 17px;
+}
+
+.bid-button:active {
+    transform: translateY(0);
+}
+
+
+/* ---------------------------------------------------------
+   11. Expired auctions and empty state
+   --------------------------------------------------------- */
+
+.ended-message {
+    margin: 10px 0 0;
+    padding: 13px;
+
+    background: #f1f1ee;
+    border: 1px solid #e5e5df;
+    border-radius: 8px;
+
+    color: #6f7782;
+    font-size: 12px;
+    font-weight: 750;
+    text-align: center;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.empty-state {
+    padding: 65px 24px;
+    background: #ffffff;
+    border: 1px dashed #d8d8d0;
+    border-radius: var(--radius-medium);
+    text-align: center;
+}
+
+.empty-icon {
+    color: #b18a49;
+    font-size: 42px;
+}
+
+.empty-state h3 {
+    margin: 12px 0 6px;
+    color: var(--navy);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 25px;
+    font-weight: 600;
+}
+
+.empty-state p {
+    max-width: 420px;
+    margin: 0 auto 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 42px;
+    padding: 0 17px;
+
+    background: var(--navy);
+    border-radius: 7px;
+
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+
+/* ---------------------------------------------------------
+   12. How-it-works section
+   --------------------------------------------------------- */
+
+.how-it-works {
+    padding: 60px max(24px, calc((100vw - var(--content-width)) / 2)) 72px;
+    background: #eeede7;
+}
+
+.how-heading {
+    margin-bottom: 29px;
+    text-align: center;
+}
+
+.how-heading .eyebrow {
+    margin-bottom: 10px;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.step {
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(16, 29, 50, 0.07);
+    border-radius: var(--radius-medium);
+}
+
+.step-number {
+    display: inline-block;
+    margin-bottom: 18px;
+    color: #a07a3c;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+.step h3 {
     margin: 0 0 8px;
     color: var(--navy);
-    font-size: 1.35rem;
-    line-height: 1.35;
-    overflow-wrap: anywhere;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 20px;
+    font-weight: 600;
 }
 
-/* Style secondary information such as the item ID. */
-.auction-card .status {
-    color: var(--muted);
-    font-size: 0.9rem;
-    overflow-wrap: anywhere;
+.step p {
+    margin: 0;
+    color: #717b8a;
+    font-size: 12px;
+    line-height: 1.8;
 }
 
-/* =========================================
-   PRICES AND BIDDERS
-   ========================================= */
 
-/* Make the current price stand out visually. */
-.price {
-    display: inline-block;
-    margin: 12px 0;
-    padding: 7px 16px;
-    background: #eaf2ff;
-    color: var(--blue);
-    border-radius: 10px;
-    font-size: 1.65rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
+/* ---------------------------------------------------------
+   13. Footer
+   --------------------------------------------------------- */
+
+.site-footer {
+    min-height: 115px;
+    padding: 27px 24px;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    background: var(--navy);
+    color: #c1cad7;
 }
 
-/* Emphasize the highest bidder information. */
-.auction-card p {
-    overflow-wrap: anywhere;
+.footer-brand {
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1.6px;
+    text-decoration: none;
 }
 
-/* =========================================
-   BID FORMS
-   ========================================= */
-
-/* Separate the bidding form from the product details. */
-.auction-card form {
-    margin-top: 20px;
-    padding-top: 18px;
-    border-top: 1px solid var(--border);
+.site-footer p {
+    margin: 0;
+    font-size: 11px;
 }
 
-/* Keep form labels clear and readable. */
-.auction-card label {
-    display: block;
-    margin: 12px 0 5px;
-    color: var(--navy);
-    font-size: 0.92rem;
-    font-weight: 700;
+.protocol-label {
+    padding: 6px 9px;
+    border: 1px solid rgba(231, 189, 112, 0.4);
+    border-radius: 5px;
+
+    color: var(--gold);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 1px;
 }
 
-/* Style username and bid amount fields. */
-.auction-card input[type="text"],
-.auction-card input[type="number"] {
-    display: block;
-    width: 100%;
-    min-width: 0;
-    padding: 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    background: #fbfcfe;
-    color: var(--text);
-    font: inherit;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
 
-/* Highlight the field currently being edited. */
-.auction-card input:focus {
-    outline: none;
-    border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(37, 99, 199, 0.13);
-}
+/* ---------------------------------------------------------
+   14. Responsive layout adjustments
+   --------------------------------------------------------- */
 
-/* Style the Place Bid button. */
-.auction-card button {
-    display: block;
-    width: 100%;
-    margin-top: 16px;
-    padding: 13px 16px;
-    border: none;
-    border-radius: 9px;
-    background: var(--blue);
-    color: var(--white);
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-
-/* Change the button appearance on hover. */
-.auction-card button:hover {
-    background: var(--blue-hover);
-    transform: translateY(-1px);
-}
-
-/* Show a visible focus indicator for keyboard users. */
-.auction-card button:focus-visible {
-    outline: 3px solid var(--gold);
-    outline-offset: 3px;
-}
-
-/* =========================================
-   RESPONSIVE LAYOUT
-   ========================================= */
-
-/* Adjust spacing for smaller screens. */
-@media (max-width: 600px) {
-    header {
-        padding: 28px 16px;
+/* Medium screens: use two cards per row and a smaller hero illustration. */
+@media (max-width: 950px) {
+    .hero {
+        grid-template-columns: 1fr 0.75fr;
+        gap: 18px;
     }
 
-    main {
-        padding: 24px 16px 35px;
+    .hero-coin {
+        width: 145px;
+        height: 145px;
     }
 
-    main h2 {
-        font-size: 1.6rem;
+    .coin-symbol {
+        font-size: 60px;
+    }
+
+    .orbit-one {
+        width: 225px;
+        height: 225px;
+    }
+
+    .orbit-two {
+        width: 270px;
+        height: 150px;
     }
 
     .auction-grid {
-        gap: 16px;
-    }
-
-    .auction-card {
-        padding: 20px 16px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-/* Respect users who prefer reduced motion. */
+/* Small screens: stack sections and make controls easier to use by touch. */
+@media (max-width: 650px) {
+    .header-inner {
+        width: calc(100% - 32px);
+        min-height: 74px;
+    }
+
+    .brand-mark {
+        width: 39px;
+        height: 39px;
+    }
+
+    .brand-name {
+        font-size: 13px;
+    }
+
+    .brand-caption {
+        font-size: 8px;
+        letter-spacing: 1.3px;
+    }
+
+    .connection-indicator {
+        font-size: 10px;
+    }
+
+    .hero {
+        grid-template-columns: 1fr;
+        padding: 50px 24px 28px;
+    }
+
+    .hero h1 {
+        font-size: clamp(40px, 12vw, 55px);
+    }
+
+    .hero-art {
+        min-height: 230px;
+        margin-top: 5px;
+    }
+
+    .hero-coin {
+        width: 135px;
+        height: 135px;
+    }
+
+    .coin-symbol {
+        font-size: 55px;
+    }
+
+    .orbit-one {
+        width: 205px;
+        height: 205px;
+    }
+
+    .orbit-two {
+        width: 245px;
+        height: 135px;
+    }
+
+    .tag-top {
+        right: 4%;
+    }
+
+    .tag-bottom {
+        left: 3%;
+    }
+
+    .auction-section {
+        width: calc(100% - 32px);
+        padding: 54px 0;
+    }
+
+    .section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 17px;
+    }
+
+    .refresh-label {
+        font-size: 10px;
+    }
+
+    .auction-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .item-art {
+        min-height: 135px;
+    }
+
+    .card-content {
+        padding: 19px;
+    }
+
+    .notification {
+        width: calc(100% - 32px);
+    }
+
+    .how-it-works {
+        padding: 48px 16px;
+    }
+
+    .steps-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .step {
+        padding: 20px;
+    }
+
+    .step-number {
+        margin-bottom: 8px;
+    }
+
+    .site-footer {
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        padding: 30px 18px;
+    }
+}
+
+/* Honour the user's preference for reduced motion. */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
         scroll-behavior: auto !important;
-        transition: none !important;
-        animation: none !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
     }
 }
