@@ -415,6 +415,9 @@ def main():
         server_socket.bind((HOST, PORT))
         server_socket.listen()
 
+        # Ρύθμιση timeout για να λειτουργεί το Ctrl+C απο το τερματικό.
+        server_socket.settimeout(1.0)
+
         print(f"COT/1 server listening on {HOST}:{PORT}")
         print(
             "Auction durations are randomized between "
@@ -431,14 +434,20 @@ def main():
 
         # Accept multiple clients until the server is stopped.
         while True:
-            client_socket, client_address = server_socket.accept()
+            try:
+                client_socket, client_address = server_socket.accept()
 
-            client_thread = threading.Thread(
-                target=handle_client,
-                args=(client_socket, client_address),
-                daemon=True,
-            )
-            client_thread.start()
+                client_thread = threading.Thread(
+                    target=handle_client,
+                    args=(client_socket, client_address),
+                    daemon=True,
+                )
+                client_thread.start()
+            except socket.timeout :
+                # Αυτό συμβαίνει κάθε 1 δευτερόλεπτο αν δεν συνδεθεί κανείς,
+                # επιτρέποντας στην Python να ελέγξει αν πατήθηκε Ctrl+C!
+                continue
+
 
     except KeyboardInterrupt:
         print("\nStopping the COT/1 server...")
