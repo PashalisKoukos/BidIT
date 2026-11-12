@@ -374,7 +374,7 @@ def place_bid():
             "index.html",
             items=items,
             notification=None,
-            error="We could not reach the auction server. Please try again."
+            error="The Auction Server is currently Offline. Please Try Again Later."
         ), 503
 
 
