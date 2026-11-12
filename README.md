@@ -7,6 +7,9 @@
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![JSON](https://img.shields.io/badge/JSON-000000?style=for-the-badge&logo=json&logoColor=white)
 
+<img width="1774" height="887" alt="image" src="https://github.com/user-attachments/assets/53e171c4-71bb-4ebc-b080-54ac0651464e" />
+
+
 Real-time auction platform based on a Client-Server architecture using the custom **COT/1 (Cash or Trash Protocol v1)** application protocol over **TCP Sockets**.
 
 The system features a multi-threaded TCP Server, a CLI Client for terminal interaction, and a Web Application (Flask + JS Polling).
